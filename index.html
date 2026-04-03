@@ -1,1708 +1,594 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Snehal AIML Planner</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
-        rel="stylesheet" />
-    <style>
-        :root {
-            --bg: #0e0b1a;
-            --surface: #16112b;
-            --surface2: #1e1838;
-            --surface3: #261f45;
-            --border: rgba(167, 139, 250, 0.15);
-            --border2: rgba(167, 139, 250, 0.25);
-            --primary: #a78bfa;
-            --primary-bright: #c4b5fd;
-            --accent: #f472b6;
-            --accent2: #38bdf8;
-            --accent3: #34d399;
-            --text: #e9e4ff;
-            --text-dim: #9b93c2;
-            --text-muted: #5f5885;
-            --glow: rgba(167, 139, 250, 0.35);
-            --radius: 16px;
-            --radius-sm: 10px;
-        }
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
-
-        html {
-            scroll-behavior: smooth
-        }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Background mesh */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(ellipse 80% 60% at 10% 0%, rgba(167, 139, 250, 0.12) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 50% at 90% 100%, rgba(244, 114, 182, 0.08) 0%, transparent 55%),
-                radial-gradient(ellipse 50% 40% at 50% 50%, rgba(56, 189, 248, 0.04) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 24px;
-            position: relative;
-            z-index: 1
-        }
-
-        /* ─── HEADER ─── */
-        header {
-            padding: 28px 0 20px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            background: rgba(14, 11, 26, 0.88);
-            backdrop-filter: blur(18px);
-            z-index: 100;
-        }
-
-        .header-inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 12px;
-            display: grid;
-            place-items: center;
-            font-size: 20px;
-            box-shadow: 0 0 20px var(--glow);
-            flex-shrink: 0;
-        }
-
-        .logo-text {
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 1.25rem;
-            line-height: 1.1;
-        }
-
-        .logo-text span {
-            display: block;
-            font-size: 0.7rem;
-            font-weight: 500;
-            color: var(--text-dim);
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-        }
-
-        .header-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .day-badge {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: #fff;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 0.85rem;
-            padding: 6px 14px;
-            border-radius: 50px;
-            letter-spacing: 0.05em;
-        }
-
-        .streak-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--surface2);
-            border: 1px solid var(--border2);
-            border-radius: 50px;
-            padding: 6px 14px;
-            font-size: 0.82rem;
-            font-weight: 500;
-            color: var(--primary-bright);
-        }
-
-        .streak-badge .flame {
-            font-size: 1rem;
-        }
-
-        /* ─── NAV TABS ─── */
-        nav {
-            padding: 16px 0 0;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 4px;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-
-        .tabs::-webkit-scrollbar {
-            display: none
-        }
-
-        .tab {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 500;
-            padding: 8px 18px;
-            border-radius: 50px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all .2s;
-            letter-spacing: 0.02em;
-        }
-
-        .tab:hover {
-            color: var(--text-dim);
-            background: var(--surface2);
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(244, 114, 182, 0.12));
-            color: var(--primary-bright);
-            border: 1px solid var(--border2);
-        }
-
-        /* ─── SECTIONS ─── */
-        .section {
-            display: none;
-            padding: 32px 0 60px;
-            animation: fadeIn .3s ease;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
-        }
-
-        /* ─── BANNER ─── */
-        .banner {
-            background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(244, 114, 182, 0.1));
-            border: 1px solid rgba(167, 139, 250, 0.25);
-            border-radius: var(--radius);
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-        }
-
-        .banner-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .banner-emoji {
-            font-size: 1.4rem;
-        }
-
-        .banner-text {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 0.95rem;
-            background: linear-gradient(90deg, var(--primary-bright), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .quote-text {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            font-style: italic;
-            text-align: right;
-            max-width: 320px;
-        }
-
-        /* ─── GRID ─── */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        @media(max-width:900px) {
-
-            .grid-2,
-            .grid-3 {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media(max-width:600px) {
-
-            .grid-2,
-            .grid-3 {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* ─── CARDS ─── */
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 22px;
-            transition: border-color .2s, box-shadow .2s;
-        }
-
-        .card:hover {
-            border-color: var(--border2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .card-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: grid;
-            place-items: center;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        .card-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text);
-        }
-
-        .card-sub {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 1px;
-        }
-
-        /* Icon color variants */
-        .ic-purple {
-            background: rgba(167, 139, 250, 0.15);
-            color: var(--primary);
-        }
-
-        .ic-pink {
-            background: rgba(244, 114, 182, 0.15);
-            color: var(--accent);
-        }
-
-        .ic-blue {
-            background: rgba(56, 189, 248, 0.15);
-            color: var(--accent2);
-        }
-
-        .ic-green {
-            background: rgba(52, 211, 153, 0.15);
-            color: var(--accent3);
-        }
-
-        .ic-orange {
-            background: rgba(251, 146, 60, 0.15);
-            color: #fb923c;
-        }
-
-        .ic-yellow {
-            background: rgba(250, 204, 21, 0.15);
-            color: #facc15;
-        }
-
-        /* ─── PROGRESS BAR ─── */
-        .progress-wrap {
-            margin: 16px 0 4px;
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-
-        .progress-bar {
-            height: 7px;
-            background: var(--surface3);
-            border-radius: 50px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            border-radius: 50px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            transition: width .5s cubic-bezier(.34, 1.56, .64, 1);
-        }
-
-        /* ─── CHECKLIST ─── */
-        .checklist {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .check-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 12px 14px;
-            cursor: pointer;
-            transition: all .18s;
-            user-select: none;
-        }
-
-        .check-item:hover {
-            border-color: var(--border2);
-            background: var(--surface3);
-        }
-
-        .check-item.done {
-            border-color: rgba(52, 211, 153, 0.3);
-            background: rgba(52, 211, 153, 0.06);
-        }
-
-        .check-item.done .check-label {
-            text-decoration: line-through;
-            color: var(--text-muted);
-        }
-
-        .check-box {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border2);
-            border-radius: 6px;
-            display: grid;
-            place-items: center;
-            flex-shrink: 0;
-            margin-top: 1px;
-            transition: all .18s;
-        }
-
-        .check-item.done .check-box {
-            background: var(--accent3);
-            border-color: var(--accent3);
-            color: #fff;
-            font-size: 11px;
-        }
-
-        .check-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            line-height: 1.4;
-        }
-
-        .check-tag {
-            margin-left: auto;
-            font-size: 0.7rem;
-            background: rgba(167, 139, 250, 0.12);
-            color: var(--primary);
-            border-radius: 50px;
-            padding: 2px 8px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        /* ─── TASK CARD (daily tasks) ─── */
-        .task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .task-item {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 13px 16px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            transition: border-color .18s;
-        }
-
-        .task-item:hover {
-            border-color: var(--border2);
-        }
-
-        .task-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            margin-top: 5px;
-        }
-
-        .task-content {}
-
-        .task-title {
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        .task-desc {
-            font-size: 0.78rem;
-            color: var(--text-dim);
-        }
-
-        /* ─── STATS ROW ─── */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-            margin-bottom: 24px;
-        }
-
-        @media(max-width:700px) {
-            .stats-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .stat-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px 18px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 1.8rem;
-            background: linear-gradient(135deg, var(--primary-bright), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.1;
-        }
-
-        .stat-label {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-            letter-spacing: 0.04em;
-        }
-
-        /* ─── ROADMAP ─── */
-        .roadmap-week {
-            margin-bottom: 28px;
-        }
-
-        .week-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 14px;
-        }
-
-        .week-badge {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 0.8rem;
-            padding: 5px 14px;
-            border-radius: 50px;
-            letter-spacing: 0.06em;
-        }
-
-        .w1 {
-            background: rgba(167, 139, 250, 0.2);
-            color: var(--primary-bright);
-        }
-
-        .w2 {
-            background: rgba(56, 189, 248, 0.2);
-            color: var(--accent2);
-        }
-
-        .w3 {
-            background: rgba(244, 114, 182, 0.2);
-            color: var(--accent);
-        }
-
-        .w4 {
-            background: rgba(52, 211, 153, 0.2);
-            color: var(--accent3);
-        }
-
-        .week-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-        .roadmap-days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-        }
-
-        @media(max-width:700px) {
-            .roadmap-days {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        @media(max-width:400px) {
-            .roadmap-days {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        .road-day {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 10px 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all .18s;
-        }
-
-        .road-day:hover {
-            border-color: var(--border2);
-            transform: translateY(-2px);
-        }
-
-        .road-day.today {
-            background: linear-gradient(135deg, rgba(167, 139, 250, 0.25), rgba(244, 114, 182, 0.15));
-            border-color: var(--primary);
-            box-shadow: 0 0 12px var(--glow);
-        }
-
-        .road-day.completed {
-            border-color: rgba(52, 211, 153, 0.4);
-            background: rgba(52, 211, 153, 0.08);
-        }
-
-        .road-day-num {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text-dim);
-        }
-
-        .road-day.today .road-day-num {
-            color: var(--primary-bright);
-        }
-
-        .road-day.completed .road-day-num {
-            color: var(--accent3);
-        }
-
-        .road-day-label {
-            font-size: 0.6rem;
-            color: var(--text-muted);
-            margin-top: 3px;
-            line-height: 1.2;
-        }
-
-        /* ─── TOPICS ─── */
-        .topic-section {
-            margin-bottom: 28px;
-        }
-
-        .topic-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .topic-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .chip {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            padding: 6px 14px;
-            font-size: 0.78rem;
-            font-weight: 500;
-            color: var(--text-dim);
-            cursor: pointer;
-            transition: all .18s;
-        }
-
-        .chip:hover,
-        .chip.learned {
-            background: rgba(167, 139, 250, 0.15);
-            border-color: var(--primary);
-            color: var(--primary-bright);
-        }
-
-        .chip.learned::before {
-            content: '✓ ';
-        }
-
-        /* ─── INTERNSHIP TRACKER ─── */
-        .tracker-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-
-        .inp {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 9px 14px;
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.85rem;
-            outline: none;
-            transition: border-color .18s;
-            width: 100%;
-        }
-
-        .inp::placeholder {
-            color: var(--text-muted);
-        }
-
-        .inp:focus {
-            border-color: var(--border2);
-        }
-
-        .inp-row {
-            display: grid;
-            grid-template-columns: 2fr 2fr 1.5fr 1.5fr auto;
-            gap: 8px;
-            align-items: end;
-        }
-
-        @media(max-width:700px) {
-            .inp-row {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: #fff;
-            border: none;
-            border-radius: var(--radius-sm);
-            padding: 9px 20px;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 0.82rem;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: opacity .18s, transform .1s;
-            letter-spacing: 0.04em;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .btn:active {
-            transform: scale(0.97);
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.75rem;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.83rem;
-        }
-
-        th {
-            text-align: left;
-            padding: 10px 14px;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 0.72rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border);
-        }
-
-        td {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-dim);
-            vertical-align: middle;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 50px;
-            font-size: 0.72rem;
-            font-weight: 600;
-        }
-
-        .s-applied {
-            background: rgba(167, 139, 250, 0.15);
-            color: var(--primary);
-        }
-
-        .s-interview {
-            background: rgba(56, 189, 248, 0.15);
-            color: var(--accent2);
-        }
-
-        .s-offer {
-            background: rgba(52, 211, 153, 0.15);
-            color: var(--accent3);
-        }
-
-        .s-rejected {
-            background: rgba(239, 68, 68, 0.15);
-            color: #f87171;
-        }
-
-        .s-pending {
-            background: rgba(250, 204, 21, 0.12);
-            color: #facc15;
-        }
-
-        /* ─── SELECT ─── */
-        select.inp {
-            cursor: pointer;
-        }
-
-        select.inp option {
-            background: var(--surface2);
-        }
-
-        /* ─── SECTION TITLE ─── */
-        .section-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 1.5rem;
-            margin-bottom: 22px;
-            line-height: 1.2;
-        }
-
-        .section-title span {
-            background: linear-gradient(90deg, var(--primary-bright), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* ─── TODAY SECTION ─── */
-        .today-grid {
-            display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            gap: 20px;
-        }
-
-        @media(max-width:800px) {
-            .today-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* ─── SCROLLBAR ─── */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--surface3);
-            border-radius: 3px;
-        }
-
-        /* ─── EMPTY STATE ─── */
-        .empty {
-            text-align: center;
-            padding: 32px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        /* ─── TOOLTIP ─── */
-        .tooltip {
-            position: relative;
-        }
-
-        .tooltip:hover .tooltip-text {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .tooltip-text {
-            position: absolute;
-            bottom: calc(100%+6px);
-            left: 50%;
-            transform: translateX(-50%) translateY(4px);
-            background: var(--surface3);
-            border: 1px solid var(--border2);
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 0.72rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: all .18s;
-            z-index: 10;
-            color: var(--text-dim);
-        }
-
-        /* Glowing divider */
-        .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border2), transparent);
-            margin: 24px 0;
-        }
-
-        /* ─── PULSE ANIMATION ─── */
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1
-            }
-
-            50% {
-                opacity: .6
-            }
-        }
-
-        .pulse {
-            animation: pulse 2s ease infinite;
-        }
-
-        /* ─── DAY DETAIL MODAL-LIKE EXPANSION ─── */
-        .day-detail {
-            background: var(--surface2);
-            border: 1px solid var(--border2);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-top: 16px;
-            display: none;
-            animation: fadeIn .25s ease;
-        }
-
-        .day-detail.open {
-            display: block;
-        }
-
-        .day-detail-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 12px;
-            color: var(--primary-bright);
-        }
-
-        /* ─── RESPONSIVE UTILITY ─── */
-        .hide-sm {}
-
-        @media(max-width:600px) {
-            .hide-sm {
-                display: none;
-            }
-        }
-
-        /* ─── FOOTER ─── */
-        footer {
-            border-top: 1px solid var(--border);
-            padding: 20px 0;
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        footer b {
-            color: var(--primary);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIML Career Roadmap 2025-26 | Student → AI Engineer</title>
+  <meta name="description" content="A free 12-month structured AIML career roadmap covering Python, DSA, Machine Learning, Deep Learning, NLP, RAG, Prompt Engineering and job prep.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --color-text-primary: #111827;
+      --color-text-secondary: #6b7280;
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f9fafb;
+      --color-border-secondary: #d1d5db;
+      --color-border-tertiary: #e5e7eb;
+      --border-radius-sm: 6px;
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+    }
+    html, body { min-height: 100%; }
+    body { background: #f3f4f6; padding: 1.5rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+  </style>
 </head>
-
 <body>
+<div class="container">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text-primary);background:transparent}
+.hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:2.5rem 1.5rem 2rem;border-radius:var(--border-radius-lg);margin-bottom:1.5rem}
+.hero h1{font-size:26px;font-weight:500;margin-bottom:0.5rem}
+.hero p{font-size:14px;opacity:0.75;margin-bottom:1rem}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.badge{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;font-size:12px;color:#fff}
+.progress-bar-outer{background:rgba(255,255,255,0.15);border-radius:10px;height:8px;margin-top:1rem}
+.progress-bar-inner{background:#4ecca3;height:8px;border-radius:10px;transition:width 0.5s}
+.progress-label{font-size:12px;opacity:0.7;margin-top:6px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem}
+.tab{padding:8px 16px;border-radius:20px;border:0.5px solid var(--color-border-secondary);font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all 0.2s}
+.tab.active{background:#0f3460;color:#fff;border-color:#0f3460}
+.phase{display:none}
+.phase.active{display:block}
+.phase-header{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+.phase-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;flex-shrink:0}
+.phase-title{font-size:18px;font-weight:500}
+.phase-sub{font-size:13px;color:var(--color-text-secondary)}
+.weeks{font-size:12px;padding:3px 10px;border-radius:12px;font-weight:500}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:1.5rem}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.card-title{font-size:15px;font-weight:500}
+.card-type{font-size:11px;padding:2px 8px;border-radius:10px}
+.topic-list{list-style:none}
+.topic-list li{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px;cursor:pointer}
+.topic-list li:last-child{border-bottom:none}
+.check{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--color-border-secondary);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.check.done{background:#4ecca3;border-color:#4ecca3}
+.check.done::after{content:'✓';font-size:10px;color:#fff;font-weight:700}
+.resources{margin-top:12px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)}
+.res-title{font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px}
+.res-link{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;color:#185fa5;cursor:pointer;text-decoration:none}
+.res-link:hover{text-decoration:underline}
+.res-icon{font-size:14px}
+.tip-box{background:var(--color-background-secondary);border-left:3px solid #4ecca3;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:0.75rem 1rem;margin-bottom:1rem;font-size:13px;color:var(--color-text-secondary)}
+.tip-box strong{color:var(--color-text-primary);font-weight:500}
+.resume-section{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem}
+.resume-section h3{font-size:15px;font-weight:500;margin-bottom:10px}
+.skill-tag{display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;margin:3px;font-weight:500}
+.tl{background:#e6f1fb;color:#0c447c}
+.tp{background:#eaf3de;color:#27500a}
+.ta{background:#faeeda;color:#633806}
+.tr{background:#fbeaf0;color:#72243e}
+.nav-btns{display:flex;justify-content:space-between;margin-top:1rem}
+.nav-btn{padding:8px 20px;border-radius:20px;border:0.5px solid var(--color-border-secondary);font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)}
+.nav-btn.primary{background:#0f3460;color:#fff;border-color:#0f3460}
+.share-btn{background:#4ecca3;color:#04342c;border:none;border-radius:20px;padding:8px 18px;font-size:13px;cursor:pointer;font-weight:500}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:0.75rem;text-align:center}
+.stat-num{font-size:22px;font-weight:500}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.roadmap-visual{display:flex;gap:0;margin-bottom:1.5rem;overflow-x:auto;padding-bottom:8px}
+.rm-step{display:flex;flex-direction:column;align-items:center;min-width:90px}
+.rm-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#fff;flex-shrink:0;cursor:pointer;transition:transform 0.2s}
+.rm-dot:hover{transform:scale(1.1)}
+.rm-line{flex:1;height:2px;background:var(--color-border-secondary);align-self:center;min-width:20px}
+.rm-label{font-size:11px;text-align:center;color:var(--color-text-secondary);margin-top:6px;max-width:80px;line-height:1.3}
+.rm-row{display:flex;align-items:center;width:100%}
+</style>
 
-    <header>
-        <div class="container">
-            <div class="header-inner">
-                <div class="logo">
-                    <div class="logo-icon">🧠</div>
-                    <div class="logo-text">
-                        Snehal AIML Planner
-                        <span>Internship Prep · 30-Day System</span>
-                    </div>
-                </div>
-                <div class="header-meta">
-                    <div class="day-badge" id="headerDay">Day 1</div>
-                    <div class="streak-badge"><span class="flame">🔥</span> <span id="streakCount">0</span> day streak
-                    </div>
-                </div>
-            </div>
-            <nav>
-                <div class="tabs">
-                    <button class="tab active" onclick="showSection('today',this)">📅 Today</button>
-                    <button class="tab" onclick="showSection('roadmap',this)">🗺️ 30-Day Roadmap</button>
-                    <button class="tab" onclick="showSection('topics',this)">📚 Topics</button>
-                    <button class="tab" onclick="showSection('tracker',this)">💼 Internship Tracker</button>
-                    <button class="tab" onclick="showSection('stats',this)">📊 Stats</button>
-                </div>
-            </nav>
-        </div>
-    </header>
+<div class="hero">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:12px;opacity:0.6;margin-bottom:6px">AIML Career Roadmap 2025-26</div>
+      <h1>From Student → AI Engineer</h1>
+      <p>12-month structured plan · Python → DSA → AIML → NLP → RAG → Jobs</p>
+    </div>
+    <button class="share-btn" onclick="copyLink()">Share Roadmap</button>
+  </div>
+  <div class="badges">
+    <span class="badge">Python</span><span class="badge">DSA</span><span class="badge">ML/DL</span>
+    <span class="badge">NLP</span><span class="badge">RAG</span><span class="badge">Prompt Eng.</span>
+    <span class="badge">LLMs</span><span class="badge">Portfolio</span>
+  </div>
+  <div class="progress-bar-outer"><div class="progress-bar-inner" id="globalBar" style="width:0%"></div></div>
+  <div class="progress-label">Overall progress: <span id="globalPct">0</span>% complete · <span id="doneCount">0</span>/<span id="totalCount">0</span> topics done</div>
+</div>
 
-    <main class="container">
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-num" style="color:#4ecca3" id="s1">0</div><div class="stat-label">Topics done</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:#185fa5" id="s2">12</div><div class="stat-label">Months plan</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:#ba7517" id="s3">8</div><div class="stat-label">Phases</div></div>
+</div>
 
-        <!-- ══════════════════════════════════════════════════
-       TODAY
-  ══════════════════════════════════════════════════ -->
-        <div class="section active" id="sec-today">
+<div style="margin-bottom:1.5rem">
+  <div style="font-size:13px;font-weight:500;margin-bottom:8px">Roadmap overview — click a phase to jump:</div>
+  <div class="roadmap-visual">
+    <div class="rm-row">
+      <div class="rm-step" onclick="setTab(0)"><div class="rm-dot" style="background:#534ab7">P</div><div class="rm-label">Python basics</div></div>
+      <div class="rm-line"></div>
+      <div class="rm-step" onclick="setTab(1)"><div class="rm-dot" style="background:#0f6e56">DSA</div><div class="rm-label">Data structures</div></div>
+      <div class="rm-line"></div>
+      <div class="rm-step" onclick="setTab(2)"><div class="rm-dot" style="background:#185fa5">ML</div><div class="rm-label">Machine learning</div></div>
+      <div class="rm-line"></div>
+      <div class="rm-step" onclick="setTab(3)"><div class="rm-dot" style="background:#3b6d11">DL</div><div class="rm-label">Deep learning</div></div>
+      <div class="rm-line"></div>
+      <div class="rm-step" onclick="setTab(4)"><div class="rm-dot" style="background:#993556">NLP</div><div class="rm-label">NLP & LLMs</div></div>
+      <div class="rm-line"></div>
+      <div class="rm-step" onclick="setTab(5)"><div class="rm-dot" style="background:#993c1d">RAG</div><div class="rm-label">RAG & agents</div></div>
+      <div class="rm-line"></div>
+      <div class="rm-step" onclick="setTab(6)"><div class="rm-dot" style="background:#854f0b">PE</div><div class="rm-label">Prompt eng.</div></div>
+      <div class="rm-line"></div>
+      <div class="rm-step" onclick="setTab(7)"><div class="rm-dot" style="background:#a32d2d">JB</div><div class="rm-label">Jobs & resume</div></div>
+    </div>
+  </div>
+</div>
 
-            <!-- Banner -->
-            <div class="banner">
-                <div class="banner-left">
-                    <span class="banner-emoji">⚡</span>
-                    <span class="banner-text">NO EXCUSES TODAY. BUILD THE FUTURE.</span>
-                </div>
-                <div class="quote-text" id="quoteText">"The best time to plant a tree was 20 years ago. The second best
-                    time is now."</div>
-            </div>
+<div class="tabs" id="tabRow"></div>
 
-            <!-- Stats row -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-number" id="statDay">1</div>
-                    <div class="stat-label">CURRENT DAY</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="statStreak">0</div>
-                    <div class="stat-label">DAY STREAK</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="statTasks">0/7</div>
-                    <div class="stat-label">TODAY'S TASKS</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="statApps">0</div>
-                    <div class="stat-label">APPS SENT</div>
-                </div>
-            </div>
+<div id="phases">
 
-            <div class="today-grid">
-                <!-- Checklist -->
-                <div>
-                    <div class="section-title">Today's <span>Checklist</span></div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon ic-purple">✅</div>
-                            <div>
-                                <div class="card-title" id="todayLabel">Day 1 — Python Basics + Arrays</div>
-                                <div class="card-sub">Complete all tasks to maintain your streak</div>
-                            </div>
-                        </div>
-
-                        <div class="progress-wrap">
-                            <div class="progress-label">
-                                <span>Daily Progress</span>
-                                <span id="progressPct">0%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFill" style="width:0%"></div>
-                            </div>
-                        </div>
-
-                        <div class="divider"></div>
-
-                        <div class="checklist" id="checklistEl"></div>
-
-                        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
-                            <button class="btn" onclick="markDayComplete()">✓ Mark Day Complete</button>
-                            <button class="btn" style="background:var(--surface3);color:var(--text-dim);"
-                                onclick="resetDay()">↺ Reset</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Dynamic tasks panel -->
-                <div>
-                    <div class="section-title">Today's <span>Tasks</span></div>
-
-                    <div class="card" style="margin-bottom:16px;">
-                        <div class="card-header">
-                            <div class="card-icon ic-blue">🎯</div>
-                            <div>
-                                <div class="card-title">Focus Areas</div>
-                                <div class="card-sub" id="focusAreas">Python · Arrays · DSA</div>
-                            </div>
-                        </div>
-                        <div class="task-list" id="tasksEl"></div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon ic-pink">💬</div>
-                            <div>
-                                <div class="card-title">Day Selector</div>
-                                <div class="card-sub">Jump to any day</div>
-                            </div>
-                        </div>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <input type="range" id="daySlider" min="1" max="30" value="1"
-                                style="flex:1;accent-color:var(--primary);" oninput="changeDayFromSlider(this.value)">
-                            <span id="sliderLabel"
-                                style="font-family:'Syne',sans-serif;font-weight:700;color:var(--primary-bright);min-width:44px;text-align:right;">Day
-                                1</span>
-                        </div>
-                        <div style="margin-top:10px;font-size:0.75rem;color:var(--text-muted);">
-                            Slide to preview any day's tasks. Progress is saved per day.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ══════════════════════════════════════════════════
-       ROADMAP
-  ══════════════════════════════════════════════════ -->
-        <div class="section" id="sec-roadmap">
-            <div class="section-title">📍 30-Day <span>Roadmap</span></div>
-
-            <div id="roadmapEl"></div>
-
-            <div class="day-detail" id="dayDetail">
-                <div class="day-detail-title" id="dayDetailTitle">Day 1 Details</div>
-                <div class="task-list" id="dayDetailTasks"></div>
-            </div>
-        </div>
-
-        <!-- ══════════════════════════════════════════════════
-       TOPICS
-  ══════════════════════════════════════════════════ -->
-        <div class="section" id="sec-topics">
-            <div class="section-title">📚 Topics to <span>Master</span></div>
-
-            <div class="grid-2" id="topicsEl"></div>
-        </div>
-
-        <!-- ══════════════════════════════════════════════════
-       INTERNSHIP TRACKER
-  ══════════════════════════════════════════════════ -->
-        <div class="section" id="sec-tracker">
-            <div class="section-title">💼 Internship <span>Tracker</span></div>
-
-            <div class="card" style="margin-bottom:20px;">
-                <div class="card-title" style="margin-bottom:14px;">Add Application</div>
-                <div class="inp-row" id="addAppRow">
-                    <input class="inp" id="appCompany" placeholder="Company name">
-                    <input class="inp" id="appRole" placeholder="Role / Position">
-                    <input class="inp" type="date" id="appDate">
-                    <select class="inp" id="appStatus">
-                        <option value="Applied">Applied</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Interview">Interview</option>
-                        <option value="Offer">Offer</option>
-                        <option value="Rejected">Rejected</option>
-                    </select>
-                    <button class="btn" onclick="addApplication()">+ Add</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Company</th>
-                                <th>Role</th>
-                                <th>Date Applied</th>
-                                <th>Status</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="trackerBody">
-                        </tbody>
-                    </table>
-                    <div class="empty" id="trackerEmpty">No applications yet. Start applying! 🚀</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ══════════════════════════════════════════════════
-       STATS
-  ══════════════════════════════════════════════════ -->
-        <div class="section" id="sec-stats">
-            <div class="section-title">📊 Your <span>Progress</span></div>
-
-            <div class="grid-3" id="statsCardsEl"></div>
-
-            <div class="divider"></div>
-
-            <div class="section-title" style="font-size:1.1rem;">Weekly Breakdown</div>
-            <div class="grid-2" id="weeklyStats"></div>
-        </div>
-
-    </main>
-
-    <footer>
-        <div class="container">
-            Built with 💜 for <b>Snehal</b> · AIML 3rd Year · Keep pushing, the internship is coming 🚀
-        </div>
-    </footer>
-
-    <script>
-        /* ════════════════════════════════════════════
-           DATA
-        ════════════════════════════════════════════ */
-
-        const QUOTES = [
-            '"The best time to plant a tree was 20 years ago. The second best time is now."',
-            '"Push yourself, because no one else is going to do it for you."',
-            '"Dream bigger. Do bigger." — Tobi Lütke',
-            '"An investment in knowledge pays the best interest." — Benjamin Franklin',
-            '"Code is like humor. When you have to explain it, it\'s bad." — Cory House',
-            '"The expert at anything was once a beginner."',
-            '"Don\'t watch the clock; do what it does. Keep going." — Sam Levenson',
-            '"Success is the sum of small efforts, repeated day in and day out."',
-            '"Every line of code you write today is one step closer to that offer letter."',
-            '"It\'s not about having time. It\'s about making time."',
-        ];
-
-        const CHECKLIST_ITEMS = [
-            { id: 'dsa', label: '2 DSA Problems (LeetCode)', tag: 'LeetCode' },
-            { id: 'py', label: '1 Python Concept / Practice', tag: 'Python' },
-            { id: 'ml', label: '1 AI/ML Concept', tag: 'AI/ML' },
-            { id: 'nlp', label: '1 NLP / Generative AI Topic', tag: 'NLP/GenAI' },
-            { id: 'proj', label: '1 Hour Project Work', tag: 'Project' },
-            { id: 'apply', label: 'Apply to 5 Internships', tag: 'Applications' },
-            { id: 'dm', label: 'Send 3 LinkedIn DMs', tag: 'Networking' },
-        ];
-
-        // 30-day plan
-        const DAY_PLAN = {
-            // Week 1: Python + Arrays/Strings
-            1: { title: 'Python Basics + Arrays', focus: 'Python · Arrays · DSA', tasks: ['Review Python syntax: variables, loops, conditionals', 'Solve 2 array problems: Two Sum, Best Time to Buy & Sell Stock', 'Read: Lists, tuples, sets in Python', 'Intro to Big-O notation'] },
-            2: { title: 'Python Functions + Strings', focus: 'Python · Strings · DSA', tasks: ['Python functions, *args, **kwargs', 'Solve: Valid Anagram, Reverse String (LeetCode)', 'String slicing, f-strings, common methods', 'Practice: Write a Python CLI calculator'] },
-            3: { title: 'Python OOP + Array Patterns', focus: 'OOP · Two Pointers · DSA', tasks: ['Python classes, inheritance, dunder methods', 'Two-pointer technique: Container With Most Water', 'Practice OOP: Build a Student class with GPA tracker', 'Solve 1 easy array problem on CodeChef'] },
-            4: { title: 'Python Dicts/Lists + Sorting', focus: 'Python · Sorting · DSA', tasks: ['Python dict comprehensions, list comprehensions', 'Sort Colors, Merge Sorted Array (LeetCode)', 'Implement bubble sort in Python', 'Build a word frequency counter'] },
-            5: { title: 'Recursion Fundamentals', focus: 'Recursion · Python · DSA', tasks: ['Understand recursion: base case, call stack', 'Fibonacci, factorial — iterative vs recursive', 'Climbing Stairs problem (LeetCode 70)', 'Python: generators and iterators intro'] },
-            6: { title: 'Strings Deep Dive + Review', focus: 'Strings · Python Review', tasks: ['Longest Common Prefix, Valid Palindrome', 'Python: regex basics (re module)', 'Review Week 1 DSA patterns', 'Mini project: build a text analyzer script'] },
-            7: { title: 'Week 1 Review + LeetCode', focus: 'Review · Practice', tasks: ['Revisit any weak spots from Week 1', 'Solve 3 mixed easy problems on LeetCode', 'Clean up your Python notes', 'Apply to 5 internships today (mandatory)'] },
-
-            // Week 2: Hashmaps + ML Intro
-            8: { title: 'HashMaps + Frequency Counting', focus: 'HashMaps · Python · DSA', tasks: ['HashMap patterns: frequency counting, two sum variant', 'Group Anagrams (LeetCode 49)', 'Python defaultdict, Counter from collections', 'Read: Hash table internals'] },
-            9: { title: 'Sliding Window Technique', focus: 'Sliding Window · DSA', tasks: ['Sliding window: fixed & variable size', 'Longest Substring Without Repeating Characters (LC 3)', 'Max Subarray Sum (Kadane\'s Algorithm)', 'Apply sliding window to real data'] },
-            10: { title: 'HashMaps + ML Intro', focus: 'HashMaps · ML Basics', tasks: ['Subarray Sum Equals K (LC 560)', 'Intro to Machine Learning: what is ML?', 'Supervised vs Unsupervised vs Reinforcement', 'Read: scikit-learn quick start guide'] },
-            11: { title: 'Linear Regression + DSA', focus: 'ML · Linear Regression · DSA', tasks: ['Implement Linear Regression with scikit-learn', 'Concept: gradient descent explained simply', 'Solve: Find All Anagrams in a String (LC 438)', 'Watch: StatQuest — Linear Regression'] },
-            12: { title: 'Classification + Overfitting', focus: 'ML · Classification · Bias-Var', tasks: ['Logistic Regression on iris dataset', 'Understand: overfitting, underfitting, bias-variance tradeoff', 'Train/test split, cross-validation', 'Solve 1 medium DSA problem of your choice'] },
-            13: { title: 'Model Evaluation Metrics', focus: 'ML · Metrics · Evaluation', tasks: ['Accuracy, Precision, Recall, F1-Score explained', 'Confusion matrix in scikit-learn', 'Hands-on: classify emails as spam/not-spam', 'DSA: Top K Frequent Elements (LC 347)'] },
-            14: { title: 'Week 2 Review + Applications', focus: 'Review · Apply', tasks: ['Review ML concepts with notes', 'Solve 2 hashmap / sliding window problems', 'Apply to 5 internships, send LinkedIn DMs', 'Plan Week 3 study schedule'] },
-
-            // Week 3: NLP + GenAI + Prompt Engineering + RAG
-            15: { title: 'NLP Foundations', focus: 'NLP · Tokenization · Embeddings', tasks: ['What is NLP? Use cases in industry', 'Tokenization: word, subword, character-level', 'NLTK: tokenize and process a news article', 'Bag of Words model implementation'] },
-            16: { title: 'Text Embeddings + Similarity', focus: 'NLP · Word2Vec · Embeddings', tasks: ['Word2Vec, GloVe — intuition explained', 'Cosine similarity: compare document vectors', 'Hands-on: load pre-trained embeddings with Gensim', 'Solve 1 DSA string problem'] },
-            17: { title: 'Intro to Large Language Models', focus: 'LLM · GenAI · Transformers', tasks: ['How LLMs work: transformer architecture overview', 'GPT vs BERT: key differences', 'Read: "Attention is All You Need" abstract', 'Explore Hugging Face model hub'] },
-            18: { title: 'Prompt Engineering Basics', focus: 'Prompt Eng · GenAI · APIs', tasks: ['Zero-shot, few-shot, chain-of-thought prompting', 'Hands-on: call OpenAI / Gemini API', 'Write 5 prompts for different use cases', 'Build a Python script that calls an LLM API'] },
-            19: { title: 'Advanced Prompt Engineering', focus: 'Prompt Patterns · GenAI', tasks: ['Role prompting, output formatting in prompts', 'ReAct prompting pattern', 'Hands-on: build a simple chatbot using API calls', 'DSA: solve 1 recursion problem'] },
-            20: { title: 'RAG — Concept + Architecture', focus: 'RAG · Vector DB · NLP', tasks: ['What is Retrieval Augmented Generation (RAG)?', 'RAG pipeline: chunk → embed → retrieve → generate', 'Read: LangChain RAG tutorial', 'Setup: install langchain, faiss-cpu, openai'] },
-            21: { title: 'RAG Implementation', focus: 'RAG · Implementation · LLM', tasks: ['Build a simple RAG system on PDF documents', 'Use FAISS vector store for document retrieval', 'Test your RAG with 5 different queries', 'DSA: review and revise weak topics'] },
-
-            // Week 4: Projects + Applications
-            22: { title: 'AI Chatbot — Planning', focus: 'Project · Chatbot · Design', tasks: ['Plan AI chatbot: features, tech stack', 'Setup: FastAPI or Streamlit backend', 'Design conversation flow and UI', 'Apply to 5 internships today'] },
-            23: { title: 'AI Chatbot — Build Day 1', focus: 'Project · Chatbot · Code', tasks: ['Build chatbot backend with LLM API integration', 'Implement session memory for multi-turn chat', 'Add persona / system prompt customization', 'Write unit tests for API calls'] },
-            24: { title: 'AI Chatbot — Build Day 2', focus: 'Project · Chatbot · Frontend', tasks: ['Build a clean Streamlit/Gradio UI for chatbot', 'Add file upload capability (PDF Q&A)', 'Deploy to Hugging Face Spaces or Render', 'Write README with screenshots and demo'] },
-            25: { title: 'Resume Analyzer — Planning', focus: 'Project · NLP · Resume Analyzer', tasks: ['Plan Resume Analyzer: parse PDF, match JD, score', 'Tech stack: PyPDF2 / pdfplumber, spaCy, LLM', 'Design output: missing skills, score, suggestions', 'DSA: 2 problems — linked list or trees'] },
-            26: { title: 'Resume Analyzer — Build', focus: 'Project · NLP · Build', tasks: ['Extract text from PDF resume using pdfplumber', 'Use spaCy to extract entities (skills, education)', 'Compare resume vs job description with LLM', 'Generate structured feedback report'] },
-            27: { title: 'Polish Projects + GitHub', focus: 'Projects · GitHub · Portfolio', tasks: ['Add proper docstrings and comments to both projects', 'Create GitHub repos with good READMEs', 'Add live demo links in profile', 'Apply to 10 internships today (double effort)'] },
-            28: { title: 'Intensive Applications', focus: 'Applications · LinkedIn · Prep', tasks: ['Customize resume for 5 different companies', 'Apply to 10 internships on LinkedIn, Internshala, AngelList', 'Follow up on previous applications', 'Prepare STAR answers for ML/Python interview questions'] },
-            29: { title: 'Mock Interviews + DSA Blitz', focus: 'Interview Prep · DSA · ML Q&A', tasks: ['Practice 5 LeetCode medium problems (timed)', 'Answer 10 ML interview questions out loud', 'Review system design basics for AI systems', 'Record yourself explaining your projects'] },
-            30: { title: 'Final Day — Review & Launch', focus: 'Review · Apply · Celebrate 🎉', tasks: ['Review entire 30-day journey and notes', 'Apply to 5 more companies', 'Post your projects on LinkedIn', 'Plan Month 2: advanced topics and more applications'] },
-        };
-
-        const WEEK_META = [
-            { week: 'Week 1', days: [1, 7], badge: 'w1', title: 'Python Foundations + Arrays & Strings DSA', emoji: '🐍' },
-            { week: 'Week 2', days: [8, 14], badge: 'w2', title: 'Intermediate DSA (HashMaps, Sliding Window) + ML Intro', emoji: '🤖' },
-            { week: 'Week 3', days: [15, 21], badge: 'w3', title: 'NLP · Generative AI · Prompt Engineering · RAG', emoji: '💬' },
-            { week: 'Week 4', days: [22, 30], badge: 'w4', title: 'Build Projects · Intensive Internship Applications', emoji: '🚀' },
-        ];
-
-        const TOPICS = [
-            {
-                title: '🐍 Python',
-                color: 'ic-purple',
-                items: ['Basics: variables, loops, conditionals', 'Lists, tuples, sets, dicts', 'Functions, *args, **kwargs', 'OOP: classes, inheritance, dunder methods', 'List & dict comprehensions', 'Lambda, map, filter', 'Generators & iterators', 'Regular expressions (re module)', 'File I/O and JSON parsing', 'Virtual environments & pip'],
-            },
-            {
-                title: '🧮 DSA',
-                color: 'ic-blue',
-                items: ['Arrays & Strings', 'Two Pointers technique', 'Sliding Window (fixed & variable)', 'HashMaps & Frequency Counting', 'Recursion & Backtracking', 'Sorting algorithms', 'Binary Search', 'Linked Lists', 'Trees & BSTs (basic)', 'Dynamic Programming (intro)'],
-            },
-            {
-                title: '🤖 AI / ML',
-                color: 'ic-green',
-                items: ['What is ML? Types of learning', 'Linear Regression', 'Logistic Regression', 'Decision Trees & Random Forests', 'Overfitting, Underfitting', 'Bias-Variance Tradeoff', 'Train/Test Split & Cross-Validation', 'Evaluation: Accuracy, F1, AUC', 'scikit-learn pipeline', 'Feature Engineering basics'],
-            },
-            {
-                title: '💬 NLP',
-                color: 'ic-orange',
-                items: ['Tokenization (word, subword, char)', 'Bag of Words model', 'TF-IDF', 'Word embeddings: Word2Vec, GloVe', 'Cosine Similarity', 'Named Entity Recognition (spaCy)', 'Sentiment Analysis', 'Text Classification pipeline', 'Sequence models intro', 'Hugging Face Transformers basics'],
-            },
-            {
-                title: '✨ Generative AI',
-                color: 'ic-pink',
-                items: ['How LLMs work (transformer intuition)', 'GPT vs BERT differences', 'Zero-shot & few-shot prompting', 'Chain-of-thought prompting', 'Role prompting & output formatting', 'ReAct prompting pattern', 'OpenAI / Gemini API usage', 'LangChain fundamentals', 'Agents & tool use', 'Building chatbots with API'],
-            },
-            {
-                title: '🔍 RAG',
-                color: 'ic-yellow',
-                items: ['What is RAG? Why it matters', 'Chunking strategies', 'Text embeddings for retrieval', 'Vector databases (FAISS, Chroma)', 'LangChain RAG pipeline', 'Document loaders (PDF, web)', 'Retrieval evaluation metrics', 'Advanced RAG: re-ranking', 'Multi-document QA', 'Building a RAG chatbot end-to-end'],
-            },
-        ];
-
-        /* ════════════════════════════════════════════
-           STATE
-        ════════════════════════════════════════════ */
-        let state = {
-            currentDay: 1,
-            streak: 0,
-            lastCompleted: null,    // date string
-            checks: {},             // {day: {taskId: bool}}
-            completedDays: [],      // [1,3,5,...]
-            applications: [],
-            learnedTopics: {},      // {topicTitle: [idx,...]}
-        };
-
-        function loadState() {
-            const saved = localStorage.getItem('snehalAIMLPlanner_v2');
-            if (saved) state = JSON.parse(saved);
-        }
-        function saveState() {
-            localStorage.setItem('snehalAIMLPlanner_v2', JSON.stringify(state));
-        }
-        loadState();
-
-        // Random quote
-        document.getElementById('quoteText').textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-
-        /* ════════════════════════════════════════════
-           NAVIGATION
-        ════════════════════════════════════════════ */
-        function showSection(id, btn) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('sec-' + id).classList.add('active');
-            if (btn) btn.classList.add('active');
-        }
-
-        /* ════════════════════════════════════════════
-           TODAY
-        ════════════════════════════════════════════ */
-        function renderToday() {
-            const day = state.currentDay;
-            const plan = DAY_PLAN[day];
-            const checks = state.checks[day] || {};
-
-            // Header updates
-            document.getElementById('headerDay').textContent = `Day ${day}`;
-            document.getElementById('todayLabel').textContent = `Day ${day} — ${plan.title}`;
-            document.getElementById('focusAreas').textContent = plan.focus;
-            document.getElementById('statDay').textContent = day;
-            document.getElementById('statStreak').textContent = state.streak;
-            document.getElementById('streakCount').textContent = state.streak;
-            document.getElementById('statApps').textContent = state.applications.length;
-
-            // Slider
-            document.getElementById('daySlider').value = day;
-            document.getElementById('sliderLabel').textContent = `Day ${day}`;
-
-            // Checklist
-            const cl = document.getElementById('checklistEl');
-            cl.innerHTML = '';
-            CHECKLIST_ITEMS.forEach(item => {
-                const done = !!checks[item.id];
-                const div = document.createElement('div');
-                div.className = 'check-item' + (done ? ' done' : '');
-                div.innerHTML = `
-      <div class="check-box">${done ? '✓' : ''}</div>
-      <div class="check-label">${item.label}</div>
-      <div class="check-tag">${item.tag}</div>`;
-                div.onclick = () => toggleCheck(item.id);
-                cl.appendChild(div);
-            });
-
-            // Progress
-            const total = CHECKLIST_ITEMS.length;
-            const done = CHECKLIST_ITEMS.filter(i => !!checks[i.id]).length;
-            const pct = Math.round(done / total * 100);
-            document.getElementById('progressFill').style.width = pct + '%';
-            document.getElementById('progressPct').textContent = pct + '%';
-            document.getElementById('statTasks').textContent = `${done}/${total}`;
-
-            // Tasks panel
-            const tEl = document.getElementById('tasksEl');
-            tEl.innerHTML = '';
-            const colors = ['var(--primary)', 'var(--accent2)', 'var(--accent)', 'var(--accent3)', '#fb923c', '#facc15', 'var(--primary-bright)'];
-            (plan.tasks || []).forEach((t, i) => {
-                const div = document.createElement('div');
-                div.className = 'task-item';
-                div.innerHTML = `<div class="task-dot" style="background:${colors[i % colors.length]}"></div>
-      <div class="task-content"><div class="task-title">${t}</div></div>`;
-                tEl.appendChild(div);
-            });
-        }
-
-        function toggleCheck(id) {
-            const day = state.currentDay;
-            if (!state.checks[day]) state.checks[day] = {};
-            state.checks[day][id] = !state.checks[day][id];
-            saveState();
-            renderToday();
-        }
-
-        function markDayComplete() {
-            const day = state.currentDay;
-            if (!state.completedDays.includes(day)) state.completedDays.push(day);
-            // Streak logic
-            const today = new Date().toDateString();
-            if (state.lastCompleted !== today) {
-                state.streak = (state.lastCompleted === new Date(Date.now() - 86400000).toDateString())
-                    ? state.streak + 1 : 1;
-                state.lastCompleted = today;
-            }
-            // Check all items
-            if (!state.checks[day]) state.checks[day] = {};
-            CHECKLIST_ITEMS.forEach(i => state.checks[day][i.id] = true);
-            saveState();
-            renderToday();
-            renderRoadmap();
-        }
-
-        function resetDay() {
-            const day = state.currentDay;
-            state.checks[day] = {};
-            saveState();
-            renderToday();
-        }
-
-        function changeDayFromSlider(v) {
-            state.currentDay = parseInt(v);
-            document.getElementById('sliderLabel').textContent = `Day ${v}`;
-            saveState();
-            renderToday();
-        }
-
-        /* ════════════════════════════════════════════
-           ROADMAP
-        ════════════════════════════════════════════ */
-        function renderRoadmap() {
-            const el = document.getElementById('roadmapEl');
-            el.innerHTML = '';
-            WEEK_META.forEach(wm => {
-                const section = document.createElement('div');
-                section.className = 'roadmap-week';
-                let daysHtml = '';
-                for (let d = wm.days[0]; d <= wm.days[1]; d++) {
-                    const isToday = d === state.currentDay;
-                    const done = state.completedDays.includes(d);
-                    daysHtml += `<div class="road-day ${isToday ? 'today' : ''} ${done ? 'completed' : ''}"
-        onclick="roadDayClick(${d})">
-        <div class="road-day-num">${d}</div>
-        <div class="road-day-label">${DAY_PLAN[d] ? DAY_PLAN[d].title.split('+')[0].trim().split(' ').slice(0, 2).join(' ') : '—'}</div>
-        ${isToday ? '<div style="font-size:0.6rem;color:var(--primary);margin-top:2px;">TODAY</div>' : ''}
-        ${done && !isToday ? '<div style="font-size:0.7rem;color:var(--accent3);">✓</div>' : ''}
-      </div>`;
-                }
-                section.innerHTML = `
-      <div class="week-header">
-        <span class="week-badge ${wm.badge}">${wm.emoji} ${wm.week}</span>
-        <span class="week-title">${wm.title}</span>
+<div class="phase active" id="phase0">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#eeedfe;color:#3c3489">1</div>
+    <div><div class="phase-title">Python Mastery</div><div class="phase-sub">Months 1–2 · Already started — keep going!</div></div>
+    <span class="weeks" style="background:#eeedfe;color:#3c3489">8 weeks</span>
+  </div>
+  <div class="tip-box"><strong>Tip:</strong> Don't just watch — code every concept. Open a notebook and retype every example. Muscle memory matters.</div>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-title">Python Fundamentals</div><span class="card-type" style="background:#eeedfe;color:#534ab7">Core</span></div>
+      <ul class="topic-list" id="t0">
+        <li onclick="toggle(this,'t0',0)"><div class="check"></div>Variables, data types, operators</li>
+        <li onclick="toggle(this,'t0',1)"><div class="check"></div>Loops, conditionals, functions</li>
+        <li onclick="toggle(this,'t0',2)"><div class="check"></div>Lists, tuples, dicts, sets</li>
+        <li onclick="toggle(this,'t0',3)"><div class="check"></div>File I/O, exceptions</li>
+        <li onclick="toggle(this,'t0',4)"><div class="check"></div>OOP — classes, inheritance</li>
+        <li onclick="toggle(this,'t0',5)"><div class="check"></div>Modules, pip, virtual envs</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.youtube.com/watch?v=_uQrJ0TkZlc" target="_blank"><span class="res-icon">▶</span> Python Full Course — Programming with Mosh (YT)</a>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PLu0W_9lII9agwh1XjRt242xIpHhPT2llg" target="_blank"><span class="res-icon">▶</span> Python by CodeWithHarry (Hindi/English)</a>
+        <a class="res-link" href="https://docs.python.org/3/tutorial/" target="_blank"><span class="res-icon">📄</span> Official Python Tutorial (docs)</a>
+        <a class="res-link" href="https://www.kaggle.com/learn/python" target="_blank"><span class="res-icon">🏅</span> Kaggle Python Course (free cert)</a>
       </div>
-      <div class="roadmap-days">${daysHtml}</div>`;
-                el.appendChild(section);
-            });
-        }
-
-        function roadDayClick(d) {
-            const detail = document.getElementById('dayDetail');
-            const plan = DAY_PLAN[d];
-            document.getElementById('dayDetailTitle').textContent = `Day ${d} — ${plan.title}`;
-            const tEl = document.getElementById('dayDetailTasks');
-            tEl.innerHTML = '';
-            const colors = ['var(--primary)', 'var(--accent2)', 'var(--accent)', 'var(--accent3)', '#fb923c'];
-            plan.tasks.forEach((t, i) => {
-                const div = document.createElement('div');
-                div.className = 'task-item';
-                div.innerHTML = `<div class="task-dot" style="background:${colors[i % colors.length]}"></div>
-      <div class="task-content"><div class="task-title">${t}</div></div>`;
-                tEl.appendChild(div);
-            });
-            // Toggle or set
-            if (detail.dataset.openDay == d && detail.classList.contains('open')) {
-                detail.classList.remove('open');
-                detail.dataset.openDay = '';
-            } else {
-                detail.classList.add('open');
-                detail.dataset.openDay = d;
-                detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-
-            // Also navigate to that day
-            state.currentDay = d;
-            saveState();
-            renderToday();
-        }
-
-        /* ════════════════════════════════════════════
-           TOPICS
-        ════════════════════════════════════════════ */
-        function renderTopics() {
-            const el = document.getElementById('topicsEl');
-            el.innerHTML = '';
-            TOPICS.forEach(topic => {
-                const learned = state.learnedTopics[topic.title] || [];
-                const pct = Math.round(learned.length / topic.items.length * 100);
-                const card = document.createElement('div');
-                card.className = 'card';
-                let chips = topic.items.map((item, i) => {
-                    const isL = learned.includes(i);
-                    return `<span class="chip ${isL ? 'learned' : ''}" onclick="toggleTopic('${encodeURIComponent(topic.title)}',${i},this)">${item}</span>`;
-                }).join('');
-                card.innerHTML = `
-      <div class="card-header">
-        <div class="card-icon ${topic.color}">📖</div>
-        <div>
-          <div class="card-title">${topic.title}</div>
-          <div class="card-sub">${learned.length}/${topic.items.length} learned</div>
-        </div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-title">Data Libraries</div><span class="card-type" style="background:#eaf3de;color:#27500a">Practical</span></div>
+      <ul class="topic-list" id="t1">
+        <li onclick="toggle(this,'t1',0)"><div class="check"></div>NumPy — arrays, math ops</li>
+        <li onclick="toggle(this,'t1',1)"><div class="check"></div>Pandas — dataframes, EDA</li>
+        <li onclick="toggle(this,'t1',2)"><div class="check"></div>Matplotlib & Seaborn plots</li>
+        <li onclick="toggle(this,'t1',3)"><div class="check"></div>Jupyter Notebooks workflow</li>
+        <li onclick="toggle(this,'t1',4)"><div class="check"></div>Mini project: EDA on dataset</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.youtube.com/watch?v=QUT1VHiLmmI" target="_blank"><span class="res-icon">▶</span> NumPy Full Course — freeCodeCamp (YT)</a>
+        <a class="res-link" href="https://www.youtube.com/watch?v=vmEHCJofslg" target="_blank"><span class="res-icon">▶</span> Pandas Tutorial — Corey Schafer (YT)</a>
+        <a class="res-link" href="https://www.kaggle.com/learn/pandas" target="_blank"><span class="res-icon">🏅</span> Kaggle Pandas Course (free cert)</a>
       </div>
-      <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+  </div>
+  <div class="nav-btns"><div></div><button class="nav-btn primary" onclick="setTab(1)">Next: DSA →</button></div>
+</div>
+
+<div class="phase" id="phase1">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#e1f5ee;color:#085041">2</div>
+    <div><div class="phase-title">DSA for AIML Interviews</div><div class="phase-sub">Months 2–4 · Focus on AIML-relevant patterns</div></div>
+    <span class="weeks" style="background:#e1f5ee;color:#085041">10 weeks</span>
+  </div>
+  <div class="tip-box"><strong>Strategy:</strong> Do 1 LeetCode problem daily. Start with Easy, move to Medium after 3 weeks. For AIML jobs, arrays, strings, hashmaps, and trees are most asked.</div>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-title">Core DSA Topics</div><span class="card-type" style="background:#eeedfe;color:#534ab7">Must Know</span></div>
+      <ul class="topic-list" id="t2">
+        <li onclick="toggle(this,'t2',0)"><div class="check"></div>Arrays, strings, two pointers</li>
+        <li onclick="toggle(this,'t2',1)"><div class="check"></div>Hashmaps, sets</li>
+        <li onclick="toggle(this,'t2',2)"><div class="check"></div>Linked lists</li>
+        <li onclick="toggle(this,'t2',3)"><div class="check"></div>Stacks & queues</li>
+        <li onclick="toggle(this,'t2',4)"><div class="check"></div>Trees, BST, BFS/DFS</li>
+        <li onclick="toggle(this,'t2',5)"><div class="check"></div>Binary search</li>
+        <li onclick="toggle(this,'t2',6)"><div class="check"></div>Sorting algorithms</li>
+        <li onclick="toggle(this,'t2',7)"><div class="check"></div>Basic dynamic programming</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz" target="_blank"><span class="res-icon">▶</span> DSA Series — Striver (A-Z, YT)</a>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PL9gnSGHSqcnr_DxHsP7AW9ftq0AtAyYqJ" target="_blank"><span class="res-icon">▶</span> DSA — Kunal Kushwaha (YT)</a>
+        <a class="res-link" href="https://leetcode.com/study-plan/data-structure/" target="_blank"><span class="res-icon">💻</span> LeetCode Study Plan (free)</a>
+        <a class="res-link" href="https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/" target="_blank"><span class="res-icon">📄</span> Striver's A-Z Sheet (450 problems)</a>
       </div>
-      <div class="topic-chips" style="margin-top:12px;">${chips}</div>`;
-                el.appendChild(card);
-            });
-        }
-
-        function toggleTopic(titleEnc, idx, el) {
-            const title = decodeURIComponent(titleEnc);
-            if (!state.learnedTopics[title]) state.learnedTopics[title] = [];
-            const arr = state.learnedTopics[title];
-            const pos = arr.indexOf(idx);
-            if (pos >= 0) arr.splice(pos, 1); else arr.push(idx);
-            saveState();
-            el.classList.toggle('learned');
-            renderTopics();
-        }
-
-        /* ════════════════════════════════════════════
-           INTERNSHIP TRACKER
-        ════════════════════════════════════════════ */
-        function renderTracker() {
-            const body = document.getElementById('trackerBody');
-            const empty = document.getElementById('trackerEmpty');
-            body.innerHTML = '';
-            if (!state.applications.length) { empty.style.display = 'block'; return; }
-            empty.style.display = 'none';
-            state.applications.forEach((app, i) => {
-                const statusClass = { Applied: 's-applied', Interview: 's-interview', Offer: 's-offer', Rejected: 's-rejected', Pending: 's-pending' }[app.status] || 's-applied';
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${i + 1}</td>
-      <td style="font-weight:500;color:var(--text);">${app.company}</td>
-      <td>${app.role}</td>
-      <td>${app.date}</td>
-      <td><span class="status-badge ${statusClass}">${app.status}</span></td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteApp(${i})">✕</button></td>`;
-                body.appendChild(tr);
-            });
-        }
-
-        function addApplication() {
-            const company = document.getElementById('appCompany').value.trim();
-            const role = document.getElementById('appRole').value.trim();
-            const date = document.getElementById('appDate').value;
-            const status = document.getElementById('appStatus').value;
-            if (!company || !role) return;
-            state.applications.push({ company, role, date: date || new Date().toLocaleDateString(), status });
-            document.getElementById('appCompany').value = '';
-            document.getElementById('appRole').value = '';
-            saveState();
-            renderTracker();
-            renderToday();
-        }
-
-        function deleteApp(i) {
-            state.applications.splice(i, 1);
-            saveState();
-            renderTracker();
-            renderToday();
-        }
-
-        /* ════════════════════════════════════════════
-           STATS
-        ════════════════════════════════════════════ */
-        function renderStats() {
-            const el = document.getElementById('statsCardsEl');
-            const totalChecks = Object.values(state.checks).reduce((s, d) => s + Object.values(d).filter(Boolean).length, 0);
-            const daysActive = Object.keys(state.checks).filter(d => Object.values(state.checks[d]).some(Boolean)).length;
-            const topicsDone = Object.values(state.learnedTopics).reduce((s, a) => s + a.length, 0);
-            const totalTopics = TOPICS.reduce((s, t) => s + t.items.length, 0);
-            const appCount = state.applications.length;
-            const offers = state.applications.filter(a => a.status === 'Offer').length;
-            const interviews = state.applications.filter(a => a.status === 'Interview').length;
-
-            const cards = [
-                { label: 'Days Completed', value: state.completedDays.length, icon: '🏆', color: 'ic-purple' },
-                { label: 'Current Streak', value: state.streak + '🔥', icon: '⚡', color: 'ic-pink' },
-                { label: 'Tasks Completed', value: totalChecks, icon: '✅', color: 'ic-green' },
-                { label: 'Active Days', value: daysActive, icon: '📅', color: 'ic-blue' },
-                { label: 'Topics Learned', value: `${topicsDone}/${totalTopics}`, icon: '📚', color: 'ic-orange' },
-                { label: 'Applications Sent', value: appCount, icon: '💼', color: 'ic-yellow' },
-                { label: 'Interviews', value: interviews, icon: '🎤', color: 'ic-blue' },
-                { label: 'Offers', value: offers, icon: '🎉', color: 'ic-green' },
-                { label: 'LinkedIn DMs', value: state.checks ? Object.values(state.checks).reduce((s, d) => s + (d['dm'] ? 1 : 0), 0) * 3 : 0, icon: '💬', color: 'ic-purple' },
-            ];
-            el.innerHTML = '';
-            cards.forEach(c => {
-                const div = document.createElement('div');
-                div.className = 'stat-card';
-                div.innerHTML = `<div class="card-header" style="margin-bottom:8px;">
-        <div class="card-icon ${c.color}">${c.icon}</div>
-        <div class="card-sub">${c.label}</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-title">Math for AIML</div><span class="card-type" style="background:#faeeda;color:#633806">Essential</span></div>
+      <ul class="topic-list" id="t3">
+        <li onclick="toggle(this,'t3',0)"><div class="check"></div>Linear algebra (vectors, matrices)</li>
+        <li onclick="toggle(this,'t3',1)"><div class="check"></div>Calculus basics (derivatives, chain rule)</li>
+        <li onclick="toggle(this,'t3',2)"><div class="check"></div>Probability & Bayes theorem</li>
+        <li onclick="toggle(this,'t3',3)"><div class="check"></div>Statistics — mean, std, distributions</li>
+        <li onclick="toggle(this,'t3',4)"><div class="check"></div>Gradient descent intuition</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab" target="_blank"><span class="res-icon">▶</span> 3Blue1Brown — Linear Algebra (YT)</a>
+        <a class="res-link" href="https://www.khanacademy.org/math/statistics-probability" target="_blank"><span class="res-icon">📄</span> Khan Academy Statistics (free)</a>
+        <a class="res-link" href="https://www.youtube.com/watch?v=aircAruvnKk" target="_blank"><span class="res-icon">▶</span> Neural Networks — 3Blue1Brown (YT)</a>
       </div>
-      <div class="stat-number">${c.value}</div>`;
-                el.appendChild(div);
-            });
+    </div>
+  </div>
+  <div class="nav-btns"><button class="nav-btn" onclick="setTab(0)">← Python</button><button class="nav-btn primary" onclick="setTab(2)">Next: ML →</button></div>
+</div>
 
-            // Weekly stats
-            const wEl = document.getElementById('weeklyStats');
-            wEl.innerHTML = '';
-            WEEK_META.forEach(wm => {
-                const days = [];
-                for (let d = wm.days[0]; d <= wm.days[1]; d++) days.push(d);
-                const done = days.filter(d => state.completedDays.includes(d)).length;
-                const pct = Math.round(done / days.length * 100);
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `<div class="card-header">
-        <span class="week-badge ${wm.badge}">${wm.emoji} ${wm.week}</span>
+<div class="phase" id="phase2">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#e6f1fb;color:#0c447c">3</div>
+    <div><div class="phase-title">Machine Learning</div><div class="phase-sub">Months 3–5 · Core algorithms + Scikit-learn</div></div>
+    <span class="weeks" style="background:#e6f1fb;color:#0c447c">10 weeks</span>
+  </div>
+  <div class="tip-box"><strong>Key:</strong> Don't just use sklearn black-box. Understand the math behind each algorithm. Kaggle competitions are gold for your resume.</div>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-title">ML Algorithms</div><span class="card-type" style="background:#e6f1fb;color:#0c447c">Core</span></div>
+      <ul class="topic-list" id="t4">
+        <li onclick="toggle(this,'t4',0)"><div class="check"></div>Linear & logistic regression</li>
+        <li onclick="toggle(this,'t4',1)"><div class="check"></div>Decision trees, random forest</li>
+        <li onclick="toggle(this,'t4',2)"><div class="check"></div>SVM, KNN, Naive Bayes</li>
+        <li onclick="toggle(this,'t4',3)"><div class="check"></div>Gradient boosting (XGBoost)</li>
+        <li onclick="toggle(this,'t4',4)"><div class="check"></div>Clustering (K-means, DBSCAN)</li>
+        <li onclick="toggle(this,'t4',5)"><div class="check"></div>Dimensionality reduction (PCA)</li>
+        <li onclick="toggle(this,'t4',6)"><div class="check"></div>Model evaluation, overfitting, CV</li>
+        <li onclick="toggle(this,'t4',7)"><div class="check"></div>Feature engineering</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.coursera.org/learn/machine-learning" target="_blank"><span class="res-icon">🎓</span> Andrew Ng ML Course — Coursera (audit free)</a>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PLKnIA16_Rmvbr7zKYQuBfsVkjoLcJgxHH" target="_blank"><span class="res-icon">▶</span> Complete ML — CampusX (YT, Hindi)</a>
+        <a class="res-link" href="https://www.kaggle.com/learn/intro-to-machine-learning" target="_blank"><span class="res-icon">🏅</span> Kaggle ML Courses (free certs)</a>
+        <a class="res-link" href="https://scikit-learn.org/stable/tutorial/index.html" target="_blank"><span class="res-icon">📄</span> Sklearn Official Tutorials</a>
       </div>
-      <div style="font-size:0.85rem;color:var(--text-dim);margin-bottom:10px;">${wm.title}</div>
-      <div class="progress-wrap">
-        <div class="progress-label"><span>${done}/${days.length} days done</span><span>${pct}%</span></div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      </div>`;
-                wEl.appendChild(div);
-            });
-        }
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-title">Projects to build</div><span class="card-type" style="background:#eaf3de;color:#27500a">Portfolio</span></div>
+      <ul class="topic-list" id="t5">
+        <li onclick="toggle(this,'t5',0)"><div class="check"></div>House price prediction (regression)</li>
+        <li onclick="toggle(this,'t5',1)"><div class="check"></div>Titanic survival (classification)</li>
+        <li onclick="toggle(this,'t5',2)"><div class="check"></div>Customer churn prediction</li>
+        <li onclick="toggle(this,'t5',3)"><div class="check"></div>Kaggle competition entry (any)</li>
+        <li onclick="toggle(this,'t5',4)"><div class="check"></div>End-to-end ML pipeline + Flask API</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Datasets & Practice</div>
+        <a class="res-link" href="https://www.kaggle.com/datasets" target="_blank"><span class="res-icon">📊</span> Kaggle Datasets (free)</a>
+        <a class="res-link" href="https://archive.ics.uci.edu/" target="_blank"><span class="res-icon">📊</span> UCI ML Repository</a>
+        <a class="res-link" href="https://www.youtube.com/watch?v=fwY9Qv96DJY" target="_blank"><span class="res-icon">▶</span> ML Project Walkthrough — Krish Naik (YT)</a>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns"><button class="nav-btn" onclick="setTab(1)">← DSA</button><button class="nav-btn primary" onclick="setTab(3)">Next: Deep Learning →</button></div>
+</div>
 
-        /* ════════════════════════════════════════════
-           INIT
-        ════════════════════════════════════════════ */
-        function init() {
-            renderToday();
-            renderRoadmap();
-            renderTopics();
-            renderTracker();
-            renderStats();
-        }
-        init();
+<div class="phase" id="phase3">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#eaf3de;color:#175404">4</div>
+    <div><div class="phase-title">Deep Learning</div><div class="phase-sub">Months 5–7 · Neural networks, CNNs, PyTorch</div></div>
+    <span class="weeks" style="background:#eaf3de;color:#175404">8 weeks</span>
+  </div>
+  <div class="tip-box"><strong>Framework:</strong> Learn PyTorch — it's dominant in research and most AIML jobs. TensorFlow is secondary. Start from scratch, not just high-level Keras.</div>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-title">Deep Learning Core</div><span class="card-type" style="background:#eaf3de;color:#27500a">Core</span></div>
+      <ul class="topic-list" id="t6">
+        <li onclick="toggle(this,'t6',0)"><div class="check"></div>Neural network from scratch</li>
+        <li onclick="toggle(this,'t6',1)"><div class="check"></div>Backprop, optimizers (Adam, SGD)</li>
+        <li onclick="toggle(this,'t6',2)"><div class="check"></div>CNNs — image classification</li>
+        <li onclick="toggle(this,'t6',3)"><div class="check"></div>RNNs, LSTMs, GRUs</li>
+        <li onclick="toggle(this,'t6',4)"><div class="check"></div>Batch norm, dropout, regularization</li>
+        <li onclick="toggle(this,'t6',5)"><div class="check"></div>Transfer learning (ResNet, VGG)</li>
+        <li onclick="toggle(this,'t6',6)"><div class="check"></div>PyTorch basics to advanced</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PLhhyoLH6IjfxeoooqP9rhU3HJIAVAJ3Vz" target="_blank"><span class="res-icon">▶</span> PyTorch Tutorials — Aladdin Persson (YT)</a>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PLKnIA16_RmvYuZauWaPlRTC54KxSNLtNn" target="_blank"><span class="res-icon">▶</span> Deep Learning — CampusX (YT)</a>
+        <a class="res-link" href="https://d2l.ai/" target="_blank"><span class="res-icon">📄</span> Dive into Deep Learning (free book)</a>
+        <a class="res-link" href="https://fast.ai" target="_blank"><span class="res-icon">🎓</span> Fast.ai Course (free, top quality)</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-title">DL Projects</div><span class="card-type" style="background:#faeeda;color:#633806">Portfolio</span></div>
+      <ul class="topic-list" id="t7">
+        <li onclick="toggle(this,'t7',0)"><div class="check"></div>MNIST digit classifier (from scratch)</li>
+        <li onclick="toggle(this,'t7',1)"><div class="check"></div>Image classifier — dogs vs cats</li>
+        <li onclick="toggle(this,'t7',2)"><div class="check"></div>Face mask detection (CNN)</li>
+        <li onclick="toggle(this,'t7',3)"><div class="check"></div>Time series forecasting (LSTM)</li>
+        <li onclick="toggle(this,'t7',4)"><div class="check"></div>Deploy a model to Hugging Face Spaces</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Deployment Tools</div>
+        <a class="res-link" href="https://huggingface.co/spaces" target="_blank"><span class="res-icon">🤗</span> HuggingFace Spaces (free hosting)</a>
+        <a class="res-link" href="https://streamlit.io/" target="_blank"><span class="res-icon">📄</span> Streamlit (easy ML app UI)</a>
+        <a class="res-link" href="https://www.youtube.com/watch?v=wnqn_8KKAkM" target="_blank"><span class="res-icon">▶</span> Deploy ML Apps — Krish Naik (YT)</a>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns"><button class="nav-btn" onclick="setTab(2)">← ML</button><button class="nav-btn primary" onclick="setTab(4)">Next: NLP & LLMs →</button></div>
+</div>
 
-        // Re-render stats when switching to that tab
-        document.querySelectorAll('.tab').forEach((t, i) => {
-            const ids = ['today', 'roadmap', 'topics', 'tracker', 'stats'];
-            t.addEventListener('click', () => {
-                if (ids[i] === 'stats') renderStats();
-                if (ids[i] === 'tracker') renderTracker();
-            });
-        });
-    </script>
+<div class="phase" id="phase4">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#fbeaf0;color:#72243e">5</div>
+    <div><div class="phase-title">NLP & Large Language Models</div><div class="phase-sub">Months 7–9 · Transformers, BERT, GPT, fine-tuning</div></div>
+    <span class="weeks" style="background:#fbeaf0;color:#72243e">8 weeks</span>
+  </div>
+  <div class="tip-box"><strong>Hot skill:</strong> NLP + LLMs is the most in-demand skill in AIML right now. This phase will make you stand out from 90% of candidates.</div>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-title">NLP Fundamentals</div><span class="card-type" style="background:#fbeaf0;color:#993556">Core</span></div>
+      <ul class="topic-list" id="t8">
+        <li onclick="toggle(this,'t8',0)"><div class="check"></div>Tokenization, stemming, lemmatization</li>
+        <li onclick="toggle(this,'t8',1)"><div class="check"></div>Bag of words, TF-IDF</li>
+        <li onclick="toggle(this,'t8',2)"><div class="check"></div>Word embeddings (Word2Vec, GloVe)</li>
+        <li onclick="toggle(this,'t8',3)"><div class="check"></div>Attention mechanism — from scratch</li>
+        <li onclick="toggle(this,'t8',4)"><div class="check"></div>Transformer architecture (the paper)</li>
+        <li onclick="toggle(this,'t8',5)"><div class="check"></div>BERT, GPT — how they work</li>
+        <li onclick="toggle(this,'t8',6)"><div class="check"></div>HuggingFace Transformers library</li>
+        <li onclick="toggle(this,'t8',7)"><div class="check"></div>Fine-tuning BERT on custom task</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PLKnIA16_Rmvb-ToL3RQ_bwxG4_ND-0-8L" target="_blank"><span class="res-icon">▶</span> NLP Zero to Advanced — CampusX (YT)</a>
+        <a class="res-link" href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank"><span class="res-icon">🤗</span> HuggingFace NLP Course (free)</a>
+        <a class="res-link" href="https://www.youtube.com/watch?v=4Bdc55j80l8" target="_blank"><span class="res-icon">▶</span> Attention mechanism explained — YT</a>
+        <a class="res-link" href="https://arxiv.org/abs/1706.03762" target="_blank"><span class="res-icon">📄</span> "Attention is All You Need" paper</a>
+        <a class="res-link" href="https://www.youtube.com/watch?v=kCc8FmEb1nY" target="_blank"><span class="res-icon">▶</span> GPT from scratch — Andrej Karpathy (YT)</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-title">LLM Applications</div><span class="card-type" style="background:#eaf3de;color:#27500a">Applied</span></div>
+      <ul class="topic-list" id="t9">
+        <li onclick="toggle(this,'t9',0)"><div class="check"></div>Sentiment analysis project</li>
+        <li onclick="toggle(this,'t9',1)"><div class="check"></div>Text classification with BERT</li>
+        <li onclick="toggle(this,'t9',2)"><div class="check"></div>Named entity recognition (NER)</li>
+        <li onclick="toggle(this,'t9',3)"><div class="check"></div>Question answering system</li>
+        <li onclick="toggle(this,'t9',4)"><div class="check"></div>Text summarization with T5</li>
+        <li onclick="toggle(this,'t9',5)"><div class="check"></div>OpenAI / Gemini API integration</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://platform.openai.com/docs" target="_blank"><span class="res-icon">📄</span> OpenAI API Docs (free tier)</a>
+        <a class="res-link" href="https://www.youtube.com/watch?v=h0DHDp1FbmQ" target="_blank"><span class="res-icon">▶</span> LLM apps with OpenAI API (YT)</a>
+        <a class="res-link" href="https://www.kaggle.com/learn/natural-language-processing" target="_blank"><span class="res-icon">🏅</span> Kaggle NLP Course (free cert)</a>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns"><button class="nav-btn" onclick="setTab(3)">← Deep Learning</button><button class="nav-btn primary" onclick="setTab(5)">Next: RAG & Agents →</button></div>
+</div>
+
+<div class="phase" id="phase5">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#faece7;color:#712b13">6</div>
+    <div><div class="phase-title">RAG, LangChain & AI Agents</div><div class="phase-sub">Months 9–10 · Most wanted skill in 2025</div></div>
+    <span class="weeks" style="background:#faece7;color:#712b13">6 weeks</span>
+  </div>
+  <div class="tip-box"><strong>Job magnet:</strong> If you can build a working RAG pipeline, you will get shortlisted at most AI startups. This is the most sought-after practical skill right now.</div>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-title">RAG Pipeline</div><span class="card-type" style="background:#faece7;color:#993c1d">Core</span></div>
+      <ul class="topic-list" id="t10">
+        <li onclick="toggle(this,'t10',0)"><div class="check"></div>What is RAG — architecture overview</li>
+        <li onclick="toggle(this,'t10',1)"><div class="check"></div>Vector databases (FAISS, ChromaDB)</li>
+        <li onclick="toggle(this,'t10',2)"><div class="check"></div>Embeddings — sentence transformers</li>
+        <li onclick="toggle(this,'t10',3)"><div class="check"></div>Document loaders, chunking strategies</li>
+        <li onclick="toggle(this,'t10',4)"><div class="check"></div>LangChain — chains, retrievers</li>
+        <li onclick="toggle(this,'t10',5)"><div class="check"></div>Advanced RAG (reranking, HyDE)</li>
+        <li onclick="toggle(this,'t10',6)"><div class="check"></div>LlamaIndex framework</li>
+        <li onclick="toggle(this,'t10',7)"><div class="check"></div>Build a PDF Q&A chatbot</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PLKnIA16_RmvbQii8IshHxDmINYVKqB0hJ" target="_blank"><span class="res-icon">▶</span> RAG & LangChain — CampusX (YT)</a>
+        <a class="res-link" href="https://python.langchain.com/docs/tutorials/rag/" target="_blank"><span class="res-icon">📄</span> LangChain RAG Tutorial (official)</a>
+        <a class="res-link" href="https://www.youtube.com/watch?v=tcqEUSNCn8I" target="_blank"><span class="res-icon">▶</span> RAG from scratch — Sam Witteveen (YT)</a>
+        <a class="res-link" href="https://docs.llamaindex.ai/en/stable/getting_started/starter_example/" target="_blank"><span class="res-icon">📄</span> LlamaIndex Quickstart (official)</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-title">AI Agents</div><span class="card-type" style="background:#faeeda;color:#633806">Advanced</span></div>
+      <ul class="topic-list" id="t11">
+        <li onclick="toggle(this,'t11',0)"><div class="check"></div>ReAct agent pattern</li>
+        <li onclick="toggle(this,'t11',1)"><div class="check"></div>Tool use with LangChain agents</li>
+        <li onclick="toggle(this,'t11',2)"><div class="check"></div>LangGraph — stateful agents</li>
+        <li onclick="toggle(this,'t11',3)"><div class="check"></div>CrewAI — multi-agent systems</li>
+        <li onclick="toggle(this,'t11',4)"><div class="check"></div>Build an AI agent project (end-to-end)</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.youtube.com/watch?v=DWUdGFCd7Lc" target="_blank"><span class="res-icon">▶</span> LangGraph Tutorial — YT</a>
+        <a class="res-link" href="https://www.youtube.com/watch?v=sPzc6hMg7So" target="_blank"><span class="res-icon">▶</span> CrewAI Full Course — YT</a>
+        <a class="res-link" href="https://www.deeplearning.ai/short-courses/" target="_blank"><span class="res-icon">🎓</span> DeepLearning.AI Short Courses (free)</a>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns"><button class="nav-btn" onclick="setTab(4)">← NLP</button><button class="nav-btn primary" onclick="setTab(6)">Next: Prompt Eng. →</button></div>
+</div>
+
+<div class="phase" id="phase6">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#faeeda;color:#633806">7</div>
+    <div><div class="phase-title">Prompt Engineering</div><div class="phase-sub">Month 10–11 · The art of talking to AI</div></div>
+    <span class="weeks" style="background:#faeeda;color:#633806">4 weeks</span>
+  </div>
+  <div class="tip-box"><strong>Reality check:</strong> Prompt engineering is a skill, not just a buzzword. Companies pay well for people who can reliably get good outputs from LLMs at scale.</div>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-title">Prompt Techniques</div><span class="card-type" style="background:#faeeda;color:#633806">Core</span></div>
+      <ul class="topic-list" id="t12">
+        <li onclick="toggle(this,'t12',0)"><div class="check"></div>Zero-shot, few-shot prompting</li>
+        <li onclick="toggle(this,'t12',1)"><div class="check"></div>Chain-of-thought (CoT) prompting</li>
+        <li onclick="toggle(this,'t12',2)"><div class="check"></div>Role prompting, persona setting</li>
+        <li onclick="toggle(this,'t12',3)"><div class="check"></div>Output formatting (JSON, XML, etc.)</li>
+        <li onclick="toggle(this,'t12',4)"><div class="check"></div>Prompt chaining & decomposition</li>
+        <li onclick="toggle(this,'t12',5)"><div class="check"></div>System prompts & guardrails</li>
+        <li onclick="toggle(this,'t12',6)"><div class="check"></div>Prompt injection awareness</li>
+        <li onclick="toggle(this,'t12',7)"><div class="check"></div>Evaluating prompt quality</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Free Resources</div>
+        <a class="res-link" href="https://www.promptingguide.ai/" target="_blank"><span class="res-icon">📄</span> Prompt Engineering Guide (best resource)</a>
+        <a class="res-link" href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank"><span class="res-icon">📄</span> Anthropic Prompting Docs (Claude)</a>
+        <a class="res-link" href="https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/" target="_blank"><span class="res-icon">🎓</span> DeepLearning.AI Prompt Eng. (free)</a>
+        <a class="res-link" href="https://learnprompting.org/" target="_blank"><span class="res-icon">📄</span> Learn Prompting (free site)</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-title">Applied Prompt Projects</div><span class="card-type" style="background:#eaf3de;color:#27500a">Portfolio</span></div>
+      <ul class="topic-list" id="t13">
+        <li onclick="toggle(this,'t13',0)"><div class="check"></div>Build a custom AI tutor prompt</li>
+        <li onclick="toggle(this,'t13',1)"><div class="check"></div>Structured data extraction system</li>
+        <li onclick="toggle(this,'t13',2)"><div class="check"></div>LLM evaluation framework</li>
+        <li onclick="toggle(this,'t13',3)"><div class="check"></div>Prompt template library (GitHub)</li>
+        <li onclick="toggle(this,'t13',4)"><div class="check"></div>Blog post on prompting techniques</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Practice & Community</div>
+        <a class="res-link" href="https://flowgpt.com/" target="_blank"><span class="res-icon">💡</span> FlowGPT — prompt community</a>
+        <a class="res-link" href="https://github.com/f/awesome-chatgpt-prompts" target="_blank"><span class="res-icon">📄</span> Awesome ChatGPT Prompts (GitHub)</a>
+        <a class="res-link" href="https://smith.langchain.com/" target="_blank"><span class="res-icon">📄</span> LangSmith — prompt evaluation</a>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns"><button class="nav-btn" onclick="setTab(5)">← RAG & Agents</button><button class="nav-btn primary" onclick="setTab(7)">Next: Jobs & Resume →</button></div>
+</div>
+
+<div class="phase" id="phase7">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#fcebeb;color:#791f1f">8</div>
+    <div><div class="phase-title">Resume, Portfolio & Job Prep</div><div class="phase-sub">Months 11–12 · Land your first AIML role</div></div>
+    <span class="weeks" style="background:#fcebeb;color:#791f1f">6 weeks</span>
+  </div>
+  <div class="tip-box"><strong>3rd tier strategy:</strong> Skills > college name. A strong GitHub with 3–4 real projects beats a tier-1 degree with no portfolio. Focus on building and shipping.</div>
+  
+  <div class="resume-section">
+    <h3>Resume must-haves for AIML roles</h3>
+    <div style="margin-bottom:8px;font-size:13px;color:var(--color-text-secondary)">Technical skills to highlight:</div>
+    <div>
+      <span class="skill-tag tl">Python</span><span class="skill-tag tl">PyTorch</span><span class="skill-tag tl">TensorFlow</span><span class="skill-tag tl">Scikit-learn</span><span class="skill-tag tl">NumPy/Pandas</span>
+      <span class="skill-tag tp">LangChain</span><span class="skill-tag tp">LlamaIndex</span><span class="skill-tag tp">HuggingFace</span><span class="skill-tag tp">RAG</span><span class="skill-tag tp">Vector DBs</span>
+      <span class="skill-tag ta">Prompt Engineering</span><span class="skill-tag ta">OpenAI API</span><span class="skill-tag ta">Fine-tuning</span><span class="skill-tag ta">LLMs</span>
+      <span class="skill-tag tr">NLP</span><span class="skill-tag tr">Transformers</span><span class="skill-tag tr">BERT/GPT</span><span class="skill-tag tr">MLOps basics</span>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-top"><div class="card-title">Portfolio checklist</div><span class="card-type" style="background:#fcebeb;color:#a32d2d">Must do</span></div>
+      <ul class="topic-list" id="t14">
+        <li onclick="toggle(this,'t14',0)"><div class="check"></div>GitHub with 5+ projects (good READMEs)</li>
+        <li onclick="toggle(this,'t14',1)"><div class="check"></div>At least 1 deployed live app</li>
+        <li onclick="toggle(this,'t14',2)"><div class="check"></div>LinkedIn optimized for AIML</li>
+        <li onclick="toggle(this,'t14',3)"><div class="check"></div>Kaggle profile (any competition medals)</li>
+        <li onclick="toggle(this,'t14',4)"><div class="check"></div>Technical blog (2–3 posts on Medium/Hashnode)</li>
+        <li onclick="toggle(this,'t14',5)"><div class="check"></div>Personal portfolio website</li>
+        <li onclick="toggle(this,'t14',6)"><div class="check"></div>Resume — 1 page, ATS-friendly</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Platforms to apply</div>
+        <a class="res-link" href="https://www.linkedin.com/jobs/" target="_blank"><span class="res-icon">💼</span> LinkedIn Jobs (AI/ML filter)</a>
+        <a class="res-link" href="https://internshala.com/" target="_blank"><span class="res-icon">💼</span> Internshala (India — internships)</a>
+        <a class="res-link" href="https://wellfound.com/" target="_blank"><span class="res-icon">💼</span> Wellfound / AngelList (AI startups)</a>
+        <a class="res-link" href="https://unstop.com/" target="_blank"><span class="res-icon">💼</span> Unstop (hackathons + jobs)</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top"><div class="card-title">Interview prep</div><span class="card-type" style="background:#faeeda;color:#633806">Prep</span></div>
+      <ul class="topic-list" id="t15">
+        <li onclick="toggle(this,'t15',0)"><div class="check"></div>ML interview questions (200+)</li>
+        <li onclick="toggle(this,'t15',1)"><div class="check"></div>Explain your projects confidently</li>
+        <li onclick="toggle(this,'t15',2)"><div class="check"></div>System design for ML (basics)</li>
+        <li onclick="toggle(this,'t15',3)"><div class="check"></div>LeetCode — 50 easy/medium problems</li>
+        <li onclick="toggle(this,'t15',4)"><div class="check"></div>Mock interviews (Pramp, Interviewing.io)</li>
+        <li onclick="toggle(this,'t15',5)"><div class="check"></div>Participate in 2+ hackathons</li>
+      </ul>
+      <div class="resources">
+        <div class="res-title">Interview resources</div>
+        <a class="res-link" href="https://github.com/khangich/machine-learning-interview" target="_blank"><span class="res-icon">📄</span> ML Interview Q&A (GitHub)</a>
+        <a class="res-link" href="https://www.youtube.com/playlist?list=PLKnIA16_RmvZo7fp5kkIth6nRTeQQsjfX" target="_blank"><span class="res-icon">▶</span> ML Interview Prep — CampusX (YT)</a>
+        <a class="res-link" href="https://www.pramp.com/" target="_blank"><span class="res-icon">💻</span> Pramp — free mock interviews</a>
+      </div>
+    </div>
+  </div>
+  <div class="tip-box" style="margin-top:0.5rem"><strong>Secret weapon:</strong> Write about what you build on LinkedIn. Post progress updates. Tag relevant people. AI hiring managers actively scout LinkedIn. A 3rd tier college student who ships things and shares their journey gets noticed.</div>
+  <div class="nav-btns"><button class="nav-btn" onclick="setTab(6)">← Prompt Eng.</button><div></div></div>
+</div>
+
+</div>
+
+<script>
+const tabs=["Python","DSA + Math","ML","Deep Learning","NLP & LLMs","RAG & Agents","Prompt Eng.","Jobs"];
+const tabRow=document.getElementById('tabRow');
+tabs.forEach((t,i)=>{
+  const b=document.createElement('button');
+  b.className='tab'+(i===0?' active':'');
+  b.textContent=t;
+  b.onclick=()=>setTab(i);
+  tabRow.appendChild(b);
+});
+
+function setTab(i){
+  document.querySelectorAll('.tab').forEach((t,j)=>t.className='tab'+(j===i?' active':''));
+  document.querySelectorAll('.phase').forEach((p,j)=>p.className='phase'+(j===i?' active':''));
+}
+
+const state={};
+function toggle(li,id,idx){
+  if(!state[id])state[id]={};
+  state[id][idx]=!state[id][idx];
+  const ch=li.querySelector('.check');
+  if(state[id][idx]){ch.classList.add('done');}else{ch.classList.remove('done');}
+  updateProgress();
+}
+
+function updateProgress(){
+  let done=0,total=0;
+  document.querySelectorAll('.topic-list li').forEach(li=>{
+    total++;
+    if(li.querySelector('.check.done'))done++;
+  });
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('globalBar').style.width=pct+'%';
+  document.getElementById('globalPct').textContent=pct;
+  document.getElementById('doneCount').textContent=done;
+  document.getElementById('totalCount').textContent=total;
+  document.getElementById('s1').textContent=done;
+}
+
+updateProgress();
+
+function copyLink(){
+  const url='https://claude.ai';
+  if(navigator.clipboard){navigator.clipboard.writeText('Check out this free AIML career roadmap I found: '+url);}
+  const btn=document.querySelector('.share-btn');
+  btn.textContent='Copied link!';
+  setTimeout(()=>btn.textContent='Share Roadmap',2000);
+}
+</script>
+</div>
 </body>
-
 </html>
